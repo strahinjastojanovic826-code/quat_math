@@ -15,6 +15,17 @@
 
 ---
 
+## Licensing
+
+This project is dual-licensed:
+
+* **Open Source (AGPLv3):** Free to use for open-source projects. If you use or modify this library in your software or network service, your source code must also be open-source under AGPLv3.
+* **Commercial License:** Required if you want to use `quat_math` in closed-source or proprietary commercial software without AGPLv3 restrictions.
+
+For commercial licensing, contact: **strahinjastojanovic826@gmail.com**
+
+---
+
 ## Installation
 
 Add this to your `Cargo.toml`:
