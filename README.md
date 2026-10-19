@@ -32,7 +32,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-quat_math = "0.1.0"
+quat_math = "0.3.0"
 ```
 
 To build as a shared library for FFI consumers (C, C++, Python, etc.), configure the library type:
