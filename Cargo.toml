@@ -1,0 +1,17 @@
+[package]
+name = "quat_math"
+version = "0.3.0"
+edition = "2024"
+authors = ["Strale <strahinjastojanovic826@gmail.com>"]  
+description = "A high-performance quaternary math library packing 2 bits into a quat with FFI support." 
+license = "AGPL-3.0-or-later"                             
+repository = "https://github.com/vaše_korisničko_ime/quat_math" 
+readme = "README.md"                        
+keywords = ["quaternary", "math", "ffi", "packed", "binary"] 
+categories = ["data-structures", "science"]        
+
+[lib]
+name = "quat_math"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
