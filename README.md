@@ -12,6 +12,19 @@
 * **`QuatWord`**: Packs 4 quaternary digits into a single standard `u8` following the layout `[Q3: 7..6 | Q2: 5..4 | Q1: 3..2 | Q0: 1..0]`[cite: 5].
 * **`QuatVec`**: A high-performance dynamic vector storing quaternary values with automatic memory management, bounds checking, and zero-copy raw buffer access[cite: 7, 8].
 * **FFI Support**: Production-ready C-compatible FFI layer with panic safety (`catch_unwind`) and bulk processing capabilities.
+* **Advanced Quaternary Algebra**: Comprehensive multi-valued logic operations including Post cyclic shift, Post negation, Łukasiewicz implication, and Min/Max operators.
+* **SIMD & Bulk Vectorization**: High-performance batch processing capabilities utilizing 64-bit CPU registers for rapid data manipulation.
+
+---
+
+## Licensing
+
+This project is dual-licensed:
+
+* **Open Source (AGPLv3):** Free to use for open-source projects. If you use or modify this library in your software or network service, your source code must also be open-source under AGPLv3.
+* **Commercial License:** Required if you want to use `quat_math` in closed-source or proprietary commercial software without AGPLv3 restrictions.
+
+For commercial licensing, contact: **strahinjastojanovic826@gmail.com**
 
 ---
 
@@ -21,7 +34,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-quat_math = "0.1.0"
+quat_math = "0.4.0"
 ```
 
 To build as a shared library for FFI consumers (C, C++, Python, etc.), configure the library type:
@@ -67,6 +80,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Access raw 4-to-1 packed byte buffer via zero-copy
     let raw_bytes: &[u8] = vec.raw_data();
     println!("Packed data buffer length: {} bytes", raw_bytes.len());
+
+    Ok(())
+}
+```
+
+### Advanced Algebra & SIMD Operations
+```rust
+use quat_math::quat::Quat;
+use quat_math::algebra::*;
+use quat_math::simd::QuatSimd;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let q1 = Quat::ONE; // binary 01
+    
+    // Post Cyclic Shift: (x + 1) mod 4
+    let cycled = q1.cycle();
+    assert_eq!(cycled.value(), 2);
+
+    // Post Inversion (Diametrical Negation): 3 - x
+    let neg = q1.post_neg();
+    assert_eq!(neg.value(), 2);
+
+    // SIMD Bulk Post Negation on raw bytes
+    let input = vec![0b11100100u8; 4]; // 16 quats packed
+    let mut output = vec![0u8; 4];
+    QuatSimd::bulk_post_neg(&input, &mut output);
 
     Ok(())
 }

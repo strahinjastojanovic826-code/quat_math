@@ -57,6 +57,11 @@ pub fn raw_data(&self) -> &[u8] {
         self.len += 1;
     }
 
+    #[inline]
+pub fn raw_data_mut(&mut self) -> &mut [u8] {
+    &mut self.data
+}
+
     /// Retrieves a Quat at the specified index safely.
     pub fn get(&self, index: usize) -> Result<Quat, QuatError> {
         if index >= self.len {

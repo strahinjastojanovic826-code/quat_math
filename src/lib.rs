@@ -10,6 +10,8 @@ pub mod arithmetic;
 pub mod packed;
 pub mod vector;
 pub mod ffi;
+pub mod simd;
+pub mod algebra;
 
 pub use error::QuatError;
 pub use quat::Quat;
@@ -269,5 +271,59 @@ mod tests {
             // 5. Bezbedno oslobađanje memorije
             quat_vec_free(vec_ptr);
         }
+    }
+    #[test]
+    fn test_quaternary_algebra() {
+        use crate::algebra::*;
+
+        let q0 = Quat::ZERO;
+        let q1 = Quat::ONE;
+        let q2 = Quat::TWO;
+        let q3 = Quat::THREE;
+
+        // Test Min / Max
+        assert_eq!(q1.min(q3), q1);
+        assert_eq!(q1.max(q3), q3);
+
+        // Test Post Cycle: (x + 1) mod 4
+        assert_eq!(q0.cycle(), q1);
+        assert_eq!(q3.cycle(), q0);
+
+        // Test Post Negation: (3 - x)
+        assert_eq!(q0.post_neg(), q3);
+        assert_eq!(q1.post_neg(), q2);
+
+        // Test Łukasiewicz Implication
+        assert_eq!(q3.lukasiewicz_impl(q1), q1);
+        assert_eq!(q1.lukasiewicz_impl(q3), q3);
+
+        // Test Literal Operator J_k(x)
+        assert_eq!(q2.literal(2), Quat::THREE);
+        assert_eq!(q2.literal(1), Quat::ZERO);
+    }
+
+    #[test]
+    fn test_simd_bulk_operations() {
+        use crate::simd::QuatSimd;
+
+        // Input packed byte: 4 quats [0, 1, 2, 3] -> 0b11_10_01_00 = 0xE4
+        let input = vec![0b11100100u8; 8];
+        let mut output = vec![0u8; 8];
+
+        // Bulk Post Negation (Inverts bits: 00->11, 01->10, 10->01, 11->00)
+        // Expected: [3, 2, 1, 0] -> 0b00_01_10_11 = 0x1B
+        QuatSimd::bulk_post_neg(&input, &mut output);
+        for &byte in &output {
+            assert_eq!(byte, 0b00011011);
+        }
+
+        // Bulk Min operation test
+        let vec_a = vec![0b11_10_01_00u8]; // [0, 1, 2, 3]
+        let vec_b = vec![0b01_11_00_10u8]; // [2, 0, 3, 1]
+        let mut res_min = vec![0u8];
+
+        // min([0, 1, 2, 3], [2, 0, 3, 1]) = [0, 0, 2, 1] -> 0b01_10_00_00
+        QuatSimd::bulk_min(&vec_a, &vec_b, &mut res_min);
+        assert_eq!(res_min[0], 0b01_10_00_00);
     }
 }
