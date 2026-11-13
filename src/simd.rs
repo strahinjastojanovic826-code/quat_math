@@ -1,4 +1,6 @@
 use crate::vector::QuatVec;
+#[cfg(target_arch = "x86_64")]
+use std::arch::x86_64::*;
 
 /// High-performance SIMD-optimized operations for bulk processing QuatVec data
 pub struct QuatSimd;
@@ -28,6 +30,33 @@ impl QuatSimd {
             output[i] = !input[i];
         }
     }
+
+    /// AVX2-accelerated bulk post-negation across raw byte slices.
+    /// Operates on 32 bytes (128 quats) per iteration using AVX2 registers.
+    #[cfg(target_arch = "x86_64")]
+    #[target_feature(enable = "avx2")]
+    pub unsafe fn bulk_post_neg_avx2(input: &[u8], output: &mut [u8]) { unsafe {
+        assert_eq!(input.len(), output.len());
+        let chunks_in = input.chunks_exact(32);
+        let mut chunks_out = output.chunks_exact_mut(32);
+
+        let remainder_in = chunks_in.remainder();
+
+        for (chunk_in, chunk_out) in chunks_in.zip(&mut chunks_out) {
+            // Load 32 bytes into an AVX2 register
+            let v = _mm256_loadu_si256(chunk_in.as_ptr() as *const __m256i);
+            let inverted = _mm256_xor_si256(v, _mm256_set1_epi8(-1));
+            _mm256_storeu_si256(chunk_out.as_mut_ptr() as *mut __m256i, inverted);
+        }
+
+        // Sada tek uzimamo remainder pošto je petlja završena sa pozajmljivanjem (&mut chunks_out)
+        let remainder_out = chunks_out.into_remainder();
+
+        // Fallback for remaining bytes
+        for (i, &b) in remainder_in.iter().enumerate() {
+            remainder_out[i] = !b;
+        }
+    }}
 
     /// Fast element-wise Minimum (Min/AND in Łukasiewicz logic) for raw packed slices
     pub fn bulk_min(a: &[u8], b: &[u8], output: &mut [u8]) {

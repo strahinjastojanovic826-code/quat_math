@@ -14,6 +14,31 @@
 * **FFI Support**: Production-ready C-compatible FFI layer with panic safety (`catch_unwind`) and bulk processing capabilities.
 * **Advanced Quaternary Algebra**: Comprehensive multi-valued logic operations including Post cyclic shift, Post negation, Łukasiewicz implication, and Min/Max operators.
 * **SIMD & Bulk Vectorization**: High-performance batch processing capabilities utilizing 64-bit CPU registers for rapid data manipulation.
+* **Advanced Implication Systems**: Extended many-valued logic support including Gödel, Goguen (Product), and Kleene-Dienes implications.
+* **T-Norms & T-Conorms**: Comprehensive fuzzy logic operators such as Minimum, Product, and Łukasiewicz T-norms/S-norms.
+* **Modal Operators**: Built-in Necessity (Box) and Possibility (Diamond) operators for quaternary logic states.
+* **AVX2 Hardware Acceleration**: High-performance vectorized bulk operations utilizing x86_64 AVX2 CPU registers.
+
+---
+
+## Benchmark
+
+| Test Name | Iterations / Workload | Execution Time (ms) | Performance Category |
+| :--- | :--- | :--- | :--- |
+| `test_ffi_quat_vector_lifecycle` | 5,000 iterations | 2.578 ms[cite: 31] | FFI / Memory Management |
+| `test_ffi_quat_arithmetic` | 50,000 iterations | 2.998 ms[cite: 31] | FFI / C-Interoperability |
+| `test_quat_constants` | 100,000 iterations | 2.943 ms[cite: 31] | Core Constants |
+| `test_quat_creation_and_validation` | 50,000 iterations | 3.811 ms[cite: 31] | Validation & Safety |
+| `test_quat_vec_operations` | 10,000 iterations | 3.879 ms[cite: 31] | Dynamic Vectors |
+| `test_quat_modular_arithmetic` | 50,000 iterations | 5.597 ms[cite: 31] | Arithmetic Modulo 4 |
+| `test_quat_bitwise_logic` | 50,000 iterations | 5.796 ms[cite: 31] | Bitwise Operations |
+| `test_quat_vec_from_iterator` | 10,000 iterations | 6.392 ms[cite: 31] | Iterators & Collectors |
+| `test_quaternary_algebra` | 50,000 iterations | 6.881 ms[cite: 31] | Base Algebra (Min/Max/Cycle) |
+| `test_quat_word_packing` | 50,000 iterations | 7.522 ms[cite: 31] | 4-to-1 Word Packing |
+| `test_stress_quat_vec_large_scale` | 100 iterations (1k elements each) | 8.377 ms[cite: 31] | Stress Test (100k ops) |
+| `test_new_algebra_features` | 50,000 iterations | 11.712 ms[cite: 31] | Advanced Logic & T-Norms |
+| `test_simd_bulk_operations` | 50,000 iterations | 11.740 ms[cite: 31] | SIMD Vector Operations |
+| `test_inline_performance_benchmark` | 10,000 iterations (1,000 bytes array) | 47.317 ms[cite: 31] | Bulk AVX2 SIMD Stress |
 
 ---
 
@@ -34,7 +59,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-quat_math = "0.4.0"
+quat_math = "0.5.0"
 ```
 
 To build as a shared library for FFI consumers (C, C++, Python, etc.), configure the library type:
@@ -80,6 +105,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Access raw 4-to-1 packed byte buffer via zero-copy
     let raw_bytes: &[u8] = vec.raw_data();
     println!("Packed data buffer length: {} bytes", raw_bytes.len());
+
+    Ok(())
+}
+```
+
+### Advanced Fuzzy Logic & Modal Operations
+```rust
+use quat_math::quat::Quat;
+use quat_math::algebra::*;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let q1 = Quat::ONE;     // 1
+    let q2 = Quat::TWO;     // 2
+    let q3 = Quat::THREE;   // 3
+
+    // Gödel Implication
+    let godel = q1.godel_impl(q2);
+    assert_eq!(godel.value(), 3);
+
+    // Łukasiewicz T-Norm & S-Norm
+    let t_norm = q1.t_norm_lukasiewicz(q2);
+    let s_norm = q1.s_norm_lukasiewicz(q2);
+    assert_eq!(t_norm.value(), 0);
+    assert_eq!(s_norm.value(), 3);
+
+    // Modal Operators (Necessity / Box)
+    let box_q = q3.necessity();
+    assert_eq!(box_q.value(), 3);
 
     Ok(())
 }

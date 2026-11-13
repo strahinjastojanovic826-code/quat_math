@@ -28,6 +28,86 @@ impl Quat {
         unsafe { Self::new_unchecked(3 - self.value()) }
     }
 
+    /// Gödel implication: 3 if x <= y else y
+    #[inline]
+    pub const fn godel_impl(self, rhs: Self) -> Self {
+        let xv = self.value();
+        let yv = rhs.value();
+        let res = if xv <= yv { 3 } else { yv };
+        unsafe { Self::new_unchecked(res) }
+    }
+
+    /// Goguen (Product) implication on 0..3 scale: 3 if x <= y else floor(3 * y / x)
+    #[inline]
+    pub const fn goguen_impl(self, rhs: Self) -> Self {
+        let xv = self.value();
+        let yv = rhs.value();
+        if xv <= yv {
+            Self::THREE
+        } else {
+            let res = (3 * yv) / xv;
+            unsafe { Self::new_unchecked(res) }
+        }
+    }
+
+    /// Kleene-Dienes implication: max(3 - x, y)
+    #[inline]
+    pub const fn kleene_dienes_impl(self, rhs: Self) -> Self {
+        let neg_x = 3 - self.value();
+        let yv = rhs.value();
+        let res = if neg_x >= yv { neg_x } else { yv };
+        unsafe { Self::new_unchecked(res) }
+    }
+
+    // ==========================================
+    // --- T-Norms & T-Conorms (S-Norms) ---
+    // ==========================================
+
+    /// Minimum T-Norm (Standard Gödel T-Norm)
+    #[inline]
+    pub const fn t_norm_min(self, rhs: Self) -> Self {
+        self.min(rhs)
+    }
+
+    /// Product T-Norm scaled to quaternary: floor(x * y / 3)
+    #[inline]
+    pub const fn t_norm_product(self, rhs: Self) -> Self {
+        let res = (self.value() * rhs.value()) / 3;
+        unsafe { Self::new_unchecked(res) }
+    }
+
+    /// Łukasiewicz T-Norm: max(0, x + y - 3)
+    #[inline]
+    pub const fn t_norm_lukasiewicz(self, rhs: Self) -> Self {
+        let sum = (self.value() as i8) + (rhs.value() as i8) - 3;
+        let res = if sum > 0 { sum as u8 } else { 0 };
+        unsafe { Self::new_unchecked(res) }
+    }
+
+    /// Łukasiewicz T-Conorm (S-Norm): min(3, x + y)
+    #[inline]
+    pub const fn s_norm_lukasiewicz(self, rhs: Self) -> Self {
+        let sum = self.value() + rhs.value();
+        let res = if sum < 3 { sum } else { 3 };
+        unsafe { Self::new_unchecked(res) }
+    }
+
+    // ==========================================
+    // --- Modal Operators ---
+    // ==========================================
+
+    /// Necessity Operator (Box): Returns THREE if strictly THREE (3), else ZERO (0).
+    #[inline]
+    pub const fn necessity(self) -> Self {
+        if self.value() == 3 { Self::THREE } else { Self::ZERO }
+    }
+
+    /// Possibility Operator (Diamond): Returns ZERO if strictly ZERO (0), else THREE (3).
+    #[inline]
+    pub const fn possibility(self) -> Self {
+        if self.value() == 0 { Self::ZERO } else { Self::THREE }
+    }
+
     /// Łukasiewicz Implication: x -> y = min(3, 3 - x + y)
     #[inline]
     pub const fn lukasiewicz_impl(self, rhs: Self) -> Self {
